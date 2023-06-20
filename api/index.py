@@ -1,80 +1,80 @@
-import os
+# import os
 from flask import Flask, request, jsonify, make_response
-from flask_restful import Resource, Api
-from flask_cors import CORS
+# from flask_restful import Resource, Api
+# from flask_cors import CORS
 
-import wfdb
-import pandas as pd
-import numpy as np
-import json
-from tensorflow.keras.models import load_model
+# import wfdb
+# import pandas as pd
+# import numpy as np
+# import json
+# from tensorflow.keras.models import load_model
 
-UPLOAD_FOLDER = 'resources'
-MODEL_PATH = UPLOAD_FOLDER + '/model/mymodel.h5'
-FILE_PATH = UPLOAD_FOLDER + '/file'
-ALLOWED_EXTENSIONS = set(['dat'])
+# UPLOAD_FOLDER = 'resources'
+# MODEL_PATH = UPLOAD_FOLDER + '/model/mymodel.h5'
+# FILE_PATH = UPLOAD_FOLDER + '/file'
+# ALLOWED_EXTENSIONS = set(['dat'])
 
 app = Flask(__name__)
-CORS(app)
-api = Api(app)
-app.config['CORS_HEADERS'] = 'Content-Type'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+# CORS(app)
+# api = Api(app)
+# app.config['CORS_HEADERS'] = 'Content-Type'
+# app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+# app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
-def isFileAllowed(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+# def isFileAllowed(filename):
+#     return '.' in filename and \
+#            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-def predictSignal():
-    # Load the model 
-    model = load_model(MODEL_PATH)
+# def predictSignal():
+#     # Load the model 
+#     model = load_model(MODEL_PATH)
 
-    signals = getSignals()
+#     signals = getSignals()
 
-    predictionResult = model.predict(signals)
-    predictionResult = np.argmax(predictionResult, axis=1)
-    anotationsCount = np.array(np.unique(predictionResult, return_counts=True)).T
+#     predictionResult = model.predict(signals)
+#     predictionResult = np.argmax(predictionResult, axis=1)
+#     anotationsCount = np.array(np.unique(predictionResult, return_counts=True)).T
 
-    return anotationsCount
+#     return anotationsCount
 
-def getSignals():
-    total_sample = wfdb.rdsamp(FILE_PATH, channels=[0])
-    samplesAmount = len(total_sample[0])//187
-    print("quantidade de amostras total:", total_sample)
-    print("quantidade de amostras:", samplesAmount)
-    relativeSampleStart = 0
-    relativeSampleEnd = 187
+# def getSignals():
+#     total_sample = wfdb.rdsamp(FILE_PATH, channels=[0])
+#     samplesAmount = len(total_sample[0])//187
+#     print("quantidade de amostras total:", total_sample)
+#     print("quantidade de amostras:", samplesAmount)
+#     relativeSampleStart = 0
+#     relativeSampleEnd = 187
 
-    for i in range(samplesAmount):
-        record = wfdb.rdsamp(FILE_PATH, sampfrom=relativeSampleStart, sampto=relativeSampleEnd, channels=[0])
-        record = normalizeSignal(record)
+#     for i in range(samplesAmount):
+#         record = wfdb.rdsamp(FILE_PATH, sampfrom=relativeSampleStart, sampto=relativeSampleEnd, channels=[0])
+#         record = normalizeSignal(record)
 
-        #storaging record data in dataframes 
-        currentDataFrame = pd.DataFrame(record[0])
-        currentDataFrame = currentDataFrame.T
+#         #storaging record data in dataframes 
+#         currentDataFrame = pd.DataFrame(record[0])
+#         currentDataFrame = currentDataFrame.T
 
-        if(i == 0):
-            totalDataFrame = currentDataFrame
-        else:
-            totalDataFrame = pd.concat([totalDataFrame, currentDataFrame])
+#         if(i == 0):
+#             totalDataFrame = currentDataFrame
+#         else:
+#             totalDataFrame = pd.concat([totalDataFrame, currentDataFrame])
 
-        relativeSampleStart += 187
-        relativeSampleEnd += 187
+#         relativeSampleStart += 187
+#         relativeSampleEnd += 187
 
-    signals = totalDataFrame.iloc[:,:187].values
+#     signals = totalDataFrame.iloc[:,:187].values
 
-    return signals
+#     return signals
 
-def normalizeSignal(record):
-    # Normalizing the signal around 0
-    maxSignalValue = record[0].max()
-    minSignalValue = record[0].min()
+# def normalizeSignal(record):
+#     # Normalizing the signal around 0
+#     maxSignalValue = record[0].max()
+#     minSignalValue = record[0].min()
 
-    for i in range(len(record[0])):
-        normalizedValue = (record[0][i] - minSignalValue) / (maxSignalValue - minSignalValue)
-        record[0][i] = normalizedValue
+#     for i in range(len(record[0])):
+#         normalizedValue = (record[0][i] - minSignalValue) / (maxSignalValue - minSignalValue)
+#         record[0][i] = normalizedValue
 
-    return record
+#     return record
     
 @app.route('/')
 def UploadFiles():
