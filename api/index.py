@@ -86,8 +86,8 @@ def UploadFiles():
     #     return make_response(jsonify({"message":"Upload realizado com sucesso!"}), 200) 
     return "oi"
 
-@app.route('/result')
-def GetResult():
-    anotationsCount = predictSignal()
-    anotationsCountList = anotationsCount.tolist()
-    return make_response(jsonify({"message": json.dumps(anotationsCountList)}), 200) 
+# @app.route('/result')
+# def GetResult():
+#     anotationsCount = predictSignal()
+#     anotationsCountList = anotationsCount.tolist()
+#     return make_response(jsonify({"message": json.dumps(anotationsCountList)}), 200) 
